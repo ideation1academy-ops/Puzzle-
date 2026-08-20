@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>استوديو البازل — رتّب صورتك</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --lav-1: #f4f1ff;
+    --lav-2: #e8e1ff;
+    --plum: #2a1b3d;
+    --plum-soft: #5c4a75;
+    --grape: #7c3aed;
+    --grape-dark: #6224c9;
+    --tangerine: #ff7a45;
+    --tangerine-dark: #e6602c;
+    --teal: #14b8a6;
+    --pink: #ec4899;
+    --card: #ffffff;
+    --ring: #ded4fb;
+    --yellow: #ffc93c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Cairo', 'Tahoma', sans-serif;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(255,122,69,0.14), transparent 40%),
+      radial-gradient(circle at 88% 14%, rgba(20,184,166,0.16), transparent 42%),
+      radial-gradient(circle at 50% 100%, rgba(236,72,153,0.10), transparent 50%),
+      linear-gradient(180deg, var(--lav-1) 0%, var(--lav-2) 100%);
+    color: var(--plum);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 34px 16px 70px 16px;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ---------- floating decorative puzzle pieces ---------- */
+  .float-piece {
+    position: fixed;
+    width: 46px;
+    height: 46px;
+    opacity: 0.16;
+    z-index: 0;
+    pointer-events: none;
+    animation: floaty 9s ease-in-out infinite;
+  }
+  @keyframes floaty {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-26px) rotate(18deg); }
+  }
+
+  /* ---------- header ---------- */
+  .hero {
+    text-align: center;
+    max-width: 640px;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--card);
+    border: 1.5px solid var(--ring);
+    color: var(--grape-dark);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 16px;
+    border-radius: 30px;
+    margin-bottom: 16px;
+    box-shadow: 0 3px 10px rgba(124,58,237,0.08);
+  }
+  h1 {
+    font-family: 'Baloo Bhaijaan 2', sans-serif;
+    font-size: 44px;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    line-height: 1.25;
+    background: linear-gradient(90deg, var(--grape) 0%, var(--pink) 55%, var(--tangerine) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p {
+    color: var(--plum-soft);
+    font-size: 16px;
+    line-height: 1.8;
+    margin: 0;
+  }
+
+  /* ---------- stage container ---------- */
+  .stage {
+    width: 100%;
+    max-width: 760px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---------- upload step ---------- */
+  #uploadStep {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .dropzone {
+    width: 100%;
+    max-width: 480px;
+    min-height: 280px;
+    background: var(--card);
+    border: 3px dashed var(--ring);
+    border-radius: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 40px 24px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 10px 30px rgba(124,58,237,0.08);
+    position: relative;
+  }
+  .dropzone:hover, .dropzone.drag-over {
+    border-color: var(--grape);
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(124,58,237,0.16);
+  }
+  .puzzle-badge {
+    width: 92px;
+    height: 92px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .puzzle-badge svg { width: 100%; height: 100%; }
+  .dz-title {
+    font-family: 'Baloo Bhaijaan 2', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--plum);
+  }
+  .dz-sub {
+    font-size: 14px;
+    color: var(--plum-soft);
+    text-align: center;
+  }
+  .dz-browse {
+    display: inline-block;
+    background: var(--grape);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 26px;
+    border-radius: 24px;
+    border: none;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .dz-browse:hover { background: var(--grape-dark); transform: translateY(-2px); }
+  #fileInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ---------- setup step (after image chosen) ---------- */
+  #setupStep {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .preview-frame {
+    width: 220px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(42,27,61,0.18);
+    border: 4px solid #fff;
+    outline: 3px solid var(--ring);
+  }
+  .preview-frame img { width: 100%; display: block; }
+  .change-img-link {
+    background: none;
+    border: none;
+    color: var(--grape-dark);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .difficulty-title {
+    font-family: 'Baloo Bhaijaan 2', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--plum);
+    margin-bottom: 2px;
+  }
+  .difficulty-pills {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .pill {
+    background: var(--card);
+    border: 2px solid var(--ring);
+    color: var(--plum-soft);
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .pill .pill-emoji { margin-left: 6px; }
+  .pill:hover { border-color: var(--grape); color: var(--grape-dark); }
+  .pill.active {
+    background: linear-gradient(135deg, var(--grape) 0%, var(--pink) 100%);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(124,58,237,0.3);
+  }
+
+  #startBtn {
+    background: linear-gradient(135deg, var(--tangerine) 0%, var(--pink) 100%);
+    color: #fff;
+    font-family: 'Baloo Bhaijaan 2', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    padding: 16px 52px;
+    border-radius: 32px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(255,122,69,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  #startBtn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 14px 30px rgba(255,122,69,0.45); }
+
+  /* ---------- game step ---------- */
+  #gameStep {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tool-btn {
+    background: var(--card);
+    border: 2px solid var(--ring);
+    color: var(--plum-soft);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 9px 18px;
+    border-radius: 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tool-btn:hover { border-color: var(--grape); color: var(--grape-dark); }
+  #progressPill {
+    background: var(--plum);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 9px 20px;
+    border-radius: 18px;
+  }
+
+  .main-area {
+    display: flex;
+    gap: 26px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .ref-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .ref-panel span { font-size: 13px; color: var(--plum-soft); font-weight: 600; }
+  .ref-panel img {
+    width: 170px;
+    border-radius: 14px;
+    border: 3px solid #fff;
+    outline: 3px solid var(--ring);
+    box-shadow: 0 6px 18px rgba(42,27,61,0.14);
+  }
+
+  #board-wrap { position: relative; }
+  #board {
+    position: relative;
+    background: repeating-conic-gradient(#f0ebff 0% 25%, #e6ddff 0% 50%) 50% / 36px 36px;
+    border: 4px dashed var(--ring);
+    border-radius: 22px;
+    box-shadow: inset 0 0 25px rgba(124,58,237,0.06), 0 8px 24px rgba(42,27,61,0.08);
+    touch-action: none;
+  }
+  .cell-outline {
+    position: absolute;
+    border: 1px dashed rgba(124,58,237,0.22);
+    box-sizing: border-box;
+  }
+  .piece {
+    position: absolute;
+    cursor: grab;
+    box-shadow: 0 3px 10px rgba(42,27,61,0.3);
+    border-radius: 6px;
+    background-repeat: no-repeat;
+    transition: box-shadow 0.15s, transform 0.1s;
+    touch-action: none;
+    z-index: 5;
+  }
+  .piece:active { cursor: grabbing; }
+  .piece.dragging {
+    z-index: 100;
+    box-shadow: 0 12px 26px rgba(42,27,61,0.4);
+    transform: scale(1.05);
+  }
+  .piece.placed {
+    box-shadow: 0 0 0 2px var(--teal) inset;
+    cursor: default;
+    z-index: 3;
+  }
+  .piece.wrong {
+    box-shadow: 0 0 0 5px #ff3b3b, 0 0 25px 8px rgba(255,0,0,0.7) !important;
+    animation: shake 0.4s;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  body.dragging-active { overflow: hidden; touch-action: none; }
+  html, body { overscroll-behavior: none; }
+
+  #tray {
+    width: 100%;
+    max-width: 900px;
+    min-height: 130px;
+    margin-top: 20px;
+    background: rgba(255,255,255,0.65);
+    border: 3px solid var(--ring);
+    border-radius: 20px;
+    position: relative;
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-content: flex-start;
+    touch-action: none;
+  }
+
+  /* ---------- win / reveal ---------- */
+  #reveal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 30%, rgba(124,58,237,0.94), rgba(42,27,61,0.96));
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+  }
+  #reveal-overlay.show { display: flex; animation: fadeIn 0.4s; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  #reveal-title {
+    font-family: 'Baloo Bhaijaan 2', sans-serif;
+    color: var(--yellow);
+    font-size: 32px;
+    font-weight: 700;
+    text-align: center;
+  }
+  #reveal-img {
+    max-width: 92vw;
+    max-height: 74vh;
+    border-radius: 20px;
+    box-shadow: 0 16px 50px rgba(0,0,0,0.5);
+    animation: popImg 0.5s;
+    border: 6px solid var(--yellow);
+  }
+  @keyframes popImg { 0% { transform: scale(0.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .reveal-actions { display: flex; gap: 12px; }
+  .reveal-btn {
+    font-size: 15px;
+    font-weight: 700;
+    padding: 11px 24px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+  }
+  #closeRevealBtn { background: #fff; color: var(--plum); }
+  #newImageBtn { background: var(--tangerine); color: #fff; }
+
+  .confetti {
+    position: fixed;
+    top: -20px;
+    font-size: 22px;
+    pointer-events: none;
+    animation: fall linear forwards;
+    z-index: 2001;
+  }
+  @keyframes fall { to { transform: translateY(110vh) rotate(360deg); opacity: 0.3; } }
+
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    .ref-panel img { width: 130px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">🧩 استوديو البازل</div>
+  <h1>حوّل أي صورة إلى لعبة بازل ممتعة</h1>
+  <p>ارفعي صورتك، اختاري مستوى الصعوبة، واستمتعي بترتيب القطع حتى تكتمل الصورة!</p>
+</div>
+
+<div class="stage">
+
+  <!-- STEP 1: Upload -->
+  <div id="uploadStep">
+    <label class="dropzone" for="fileInput" id="dropzone">
+      <div class="puzzle-badge">
+        <svg viewBox="0 0 100 100" fill="none">
+          <path d="M30 15 H55 C55 15 53 22 60 22 C67 22 65 15 65 15 H85 V35 C85 35 78 33 78 40 C78 47 85 45 85 45 V65 H65 C65 65 67 58 60 58 C53 58 55 65 55 65 H30 V45 C30 45 23 47 23 40 C23 33 30 35 30 35 V15 Z"
+            fill="url(#grad1)" stroke="#7C3AED" stroke-width="2.5" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="grad1" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF7A45"/>
+              <stop offset="50%" stop-color="#EC4899"/>
+              <stop offset="100%" stop-color="#7C3AED"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="dz-title">اسحبي صورتك هنا</div>
+      <div class="dz-sub">أو اضغطي على الزر لاختيار صورة من جهازك<br>(JPG, PNG)</div>
+      <span class="dz-browse" id="browseBtn">📁 اختيار صورة</span>
+      <input type="file" id="fileInput" accept="image/*">
+    </label>
+  </div>
+
+  <!-- STEP 2: Setup (difficulty) -->
+  <div id="setupStep">
+    <div class="preview-frame"><img id="previewImg" src="" alt="preview"></div>
+    <button class="change-img-link" id="changeImgBtn">🔄 تغيير الصورة</button>
+
+    <div class="difficulty-title">اختاري مستوى الصعوبة</div>
+    <div class="difficulty-pills" id="difficultyPills">
+      <button class="pill" data-cols="3" data-rows="2"><span class="pill-emoji">🙂</span>سهل (3×2)</button>
+      <button class="pill active" data-cols="4" data-rows="3"><span class="pill-emoji">😄</span>متوسط (4×3)</button>
+      <button class="pill" data-cols="5" data-rows="4"><span class="pill-emoji">🤩</span>صعب (5×4)</button>
+      <button class="pill" data-cols="6" data-rows="5"><span class="pill-emoji">🔥</span>خبير (6×5)</button>
+    </div>
+
+    <button id="startBtn">🚀 ابدأ اللعب</button>
+  </div>
+
+  <!-- STEP 3: Game -->
+  <div id="gameStep">
+    <div class="toolbar">
+      <button class="tool-btn" id="restartBtn">🔄 إعادة الترتيب</button>
+      <button class="tool-btn" id="hintBtn">💡 إظهار/إخفاء الصورة الأصلية</button>
+      <button class="tool-btn" id="newGameBtn">🖼️ صورة جديدة</button>
+      <div id="progressPill">0 / 0 قطعة</div>
+    </div>
+
+    <div class="main-area">
+      <div class="ref-panel">
+        <span>الصورة الأصلية</span>
+        <img id="refImg" src="" alt="reference">
+      </div>
+      <div id="board-wrap">
+        <div id="board"></div>
+      </div>
+    </div>
+
+    <div id="tray"></div>
+  </div>
+
+</div>
+
+<div id="reveal-overlay">
+  <div id="reveal-title">👏 برافو! أكملتِ الصورة 👏</div>
+  <img id="reveal-img" src="" alt="الصورة الكاملة">
+  <div class="reveal-actions">
+    <button class="reveal-btn" id="closeRevealBtn">إغلاق ✖</button>
+    <button class="reveal-btn" id="newImageBtn">🖼️ صورة جديدة</button>
+  </div>
+</div>
+
+<script>
+/* ============ decorative floating puzzle pieces ============ */
+function spawnFloatPieces() {
+  const emojiSet = ['🧩'];
+  const colors = ['#7C3AED','#EC4899','#FF7A45','#14B8A6'];
+  for (let i = 0; i < 6; i++) {
+    const el = document.createElement('div');
+    el.className = 'float-piece';
+    el.textContent = '🧩';
+    el.style.left = (Math.random() * 90 + 2) + 'vw';
+    el.style.top = (Math.random() * 85 + 5) + 'vh';
+    el.style.fontSize = (28 + Math.random() * 26) + 'px';
+    el.style.animationDelay = (Math.random() * 4) + 's';
+    el.style.animationDuration = (7 + Math.random() * 5) + 's';
+    el.style.color = colors[i % colors.length];
+    document.body.appendChild(el);
+  }
+}
+spawnFloatPieces();
+
+/* ============ state ============ */
+let IMG_SRC = null;
+let COLS = 4, ROWS = 3;
+let pieceW = 0, pieceH = 0;
+let boardW = 0, boardH = 0;
+let placedCount = 0;
+let totalPieces = 0;
+let draggingEl = null;
+let dragOffsetX = 0, dragOffsetY = 0;
+let imgNaturalW = 0, imgNaturalH = 0;
+
+const uploadStep = document.getElementById('uploadStep');
+const setupStep = document.getElementById('setupStep');
+const gameStep = document.getElementById('gameStep');
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const browseBtn = document.getElementById('browseBtn');
+const previewImg = document.getElementById('previewImg');
+const changeImgBtn = document.getElementById('changeImgBtn');
+const difficultyPills = document.getElementById('difficultyPills');
+const startBtn = document.getElementById('startBtn');
+
+const board = document.getElementById('board');
+const tray = document.getElementById('tray');
+const progressPill = document.getElementById('progressPill');
+const refImg = document.getElementById('refImg');
+const restartBtn = document.getElementById('restartBtn');
+const hintBtn = document.getElementById('hintBtn');
+const newGameBtn = document.getElementById('newGameBtn');
+
+/* ============ step 1: upload ============ */
+fileInput.addEventListener('change', () => {
+  if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+});
+
+['dragenter','dragover'].forEach(evt => {
+  dropzone.addEventListener(evt, (e) => {
+    e.preventDefault();
+    dropzone.classList.add('drag-over');
+  });
+});
+['dragleave','drop'].forEach(evt => {
+  dropzone.addEventListener(evt, (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('drag-over');
+  });
+});
+dropzone.addEventListener('drop', (e) => {
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+function handleFile(file) {
+  if (!file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    IMG_SRC = e.target.result;
+    previewImg.src = IMG_SRC;
+    uploadStep.style.display = 'none';
+    setupStep.style.display = 'flex';
+  };
+  reader.readAsDataURL(file);
+}
+
+changeImgBtn.addEventListener('click', () => {
+  setupStep.style.display = 'none';
+  uploadStep.style.display = 'flex';
+  fileInput.value = '';
+});
+
+/* ============ step 2: difficulty ============ */
+difficultyPills.addEventListener('click', (e) => {
+  const btn = e.target.closest('.pill');
+  if (!btn) return;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  COLS = parseInt(btn.dataset.cols);
+  ROWS = parseInt(btn.dataset.rows);
+});
+
+startBtn.addEventListener('click', () => {
+  setupStep.style.display = 'none';
+  gameStep.style.display = 'flex';
+  refImg.src = IMG_SRC;
+  setupPuzzle();
+});
+
+newGameBtn.addEventListener('click', resetToUpload);
+document.getElementById('newImageBtn').addEventListener('click', () => {
+  document.getElementById('reveal-overlay').classList.remove('show');
+  resetToUpload();
+});
+
+function resetToUpload() {
+  gameStep.style.display = 'none';
+  setupStep.style.display = 'none';
+  uploadStep.style.display = 'flex';
+  IMG_SRC = null;
+  fileInput.value = '';
+  board.innerHTML = '';
+  tray.innerHTML = '';
+}
+
+/* ============ step 3: puzzle mechanics ============ */
+function getBoardMaxSize() {
+  const availW = Math.min(window.innerWidth - 260, 900);
+  const availH = window.innerHeight * 0.55;
+  return { w: Math.max(availW, 300), h: availH };
+}
+
+function setupPuzzle() {
+  board.innerHTML = '';
+  tray.innerHTML = '';
+  placedCount = 0;
+
+  totalPieces = ROWS * COLS;
+  progressPill.textContent = `0 / ${totalPieces} قطعة`;
+
+  const tempImg = new Image();
+  tempImg.onload = () => {
+    imgNaturalW = tempImg.naturalWidth;
+    imgNaturalH = tempImg.naturalHeight;
+    const ratio = imgNaturalW / imgNaturalH;
+
+    const maxSize = getBoardMaxSize();
+    boardW = maxSize.w;
+    boardH = boardW / ratio;
+    if (boardH > maxSize.h) {
+      boardH = maxSize.h;
+      boardW = boardH * ratio;
+    }
+    board.style.width = boardW + 'px';
+    board.style.height = boardH + 'px';
+
+    pieceW = boardW / COLS;
+    pieceH = boardH / ROWS;
+
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const outline = document.createElement('div');
+        outline.className = 'cell-outline';
+        outline.style.left = (c * pieceW) + 'px';
+        outline.style.top = (r * pieceH) + 'px';
+        outline.style.width = pieceW + 'px';
+        outline.style.height = pieceH + 'px';
+        board.appendChild(outline);
+      }
+    }
+
+    let pieces = [];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) pieces.push({ r, c });
+    }
+    for (let i = pieces.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pieces[i], pieces[j]] = [pieces[j], pieces[i]];
+    }
+
+    const trayWidth = tray.clientWidth || (boardW + 260);
+    const cols = Math.max(4, Math.floor(trayWidth / (pieceW + 10)));
+
+    pieces.forEach((p, idx) => {
+      const piece = document.createElement('div');
+      piece.className = 'piece';
+      piece.style.width = pieceW + 'px';
+      piece.style.height = pieceH + 'px';
+      piece.style.backgroundImage = `url(${IMG_SRC})`;
+      piece.style.backgroundSize = boardW + 'px ' + boardH + 'px';
+      piece.style.backgroundPosition = `-${p.c * pieceW}px -${p.r * pieceH}px`;
+      piece.dataset.r = p.r;
+      piece.dataset.c = p.c;
+      piece.dataset.placed = 'false';
+
+      const trayRow = Math.floor(idx / cols);
+      const trayCol = idx % cols;
+      piece.style.position = 'absolute';
+      piece.style.left = (8 + trayCol * (pieceW + 8)) + 'px';
+      piece.style.top = (8 + trayRow * (pieceH + 8)) + 'px';
+
+      tray.style.minHeight = (8 + (Math.floor((pieces.length-1)/cols)+1) * (pieceH + 8)) + 'px';
+      tray.style.position = 'relative';
+
+      attachDragHandlers(piece);
+      tray.appendChild(piece);
+    });
+  };
+  tempImg.src = IMG_SRC;
+}
+
+function attachDragHandlers(piece) {
+  piece.addEventListener('pointerdown', onPointerDown);
+}
+
+function onPointerDown(e) {
+  const piece = e.currentTarget;
+  if (piece.dataset.placed === 'true') return;
+  e.preventDefault();
+  piece.setPointerCapture(e.pointerId);
+  draggingEl = piece;
+  piece.classList.add('dragging');
+  document.body.classList.add('dragging-active');
+
+  const rect = piece.getBoundingClientRect();
+  dragOffsetX = e.clientX - rect.left;
+  dragOffsetY = e.clientY - rect.top;
+
+  piece.style.position = 'fixed';
+  piece.style.left = (rect.left) + 'px';
+  piece.style.top = (rect.top) + 'px';
+  document.body.appendChild(piece);
+
+  document.addEventListener('pointermove', onPointerMove, { passive: false });
+  document.addEventListener('pointerup', onPointerUp);
+}
+
+function onPointerMove(e) {
+  if (!draggingEl) return;
+  e.preventDefault();
+  draggingEl.style.left = (e.clientX - dragOffsetX) + 'px';
+  draggingEl.style.top = (e.clientY - dragOffsetY) + 'px';
+}
+
+function onPointerUp(e) {
+  if (!draggingEl) return;
+  const piece = draggingEl;
+  piece.classList.remove('dragging');
+  document.body.classList.remove('dragging-active');
+  document.removeEventListener('pointermove', onPointerMove);
+  document.removeEventListener('pointerup', onPointerUp);
+
+  const boardRect = board.getBoundingClientRect();
+  const pieceRect = piece.getBoundingClientRect();
+  const pieceCenterX = pieceRect.left + pieceRect.width / 2;
+  const pieceCenterY = pieceRect.top + pieceRect.height / 2;
+
+  const overBoard = pieceCenterX >= boardRect.left && pieceCenterX <= boardRect.right &&
+                     pieceCenterY >= boardRect.top && pieceCenterY <= boardRect.bottom;
+
+  if (overBoard) {
+    const relX = pieceCenterX - boardRect.left;
+    const relY = pieceCenterY - boardRect.top;
+    const targetCol = Math.floor(relX / pieceW);
+    const targetRow = Math.floor(relY / pieceH);
+
+    const correctR = parseInt(piece.dataset.r);
+    const correctC = parseInt(piece.dataset.c);
+
+    if (targetRow === correctR && targetCol === correctC) {
+      piece.style.position = 'absolute';
+      piece.style.left = (correctC * pieceW) + 'px';
+      piece.style.top = (correctR * pieceH) + 'px';
+      board.appendChild(piece);
+      piece.dataset.placed = 'true';
+      piece.classList.add('placed');
+      piece.style.cursor = 'default';
+      placedCount++;
+      progressPill.textContent = `${placedCount} / ${totalPieces} قطعة`;
+      checkWin();
+    } else {
+      piece.classList.add('wrong');
+      setTimeout(() => {
+        piece.classList.remove('wrong');
+        returnToTray(piece);
+      }, 450);
+    }
+  } else {
+    const trayRect = tray.getBoundingClientRect();
+    const overTray = pieceCenterX >= trayRect.left && pieceCenterX <= trayRect.right &&
+                      pieceCenterY >= trayRect.top && pieceCenterY <= trayRect.bottom;
+    if (overTray) {
+      piece.style.position = 'absolute';
+      let newLeft = pieceRect.left - trayRect.left;
+      let newTop = pieceRect.top - trayRect.top;
+      newLeft = Math.max(0, Math.min(newLeft, tray.clientWidth - pieceW));
+      newTop = Math.max(0, newTop);
+      piece.style.left = newLeft + 'px';
+      piece.style.top = newTop + 'px';
+      tray.appendChild(piece);
+    } else {
+      returnToTray(piece);
+    }
+  }
+
+  draggingEl = null;
+}
+
+function returnToTray(piece) {
+  piece.style.position = 'absolute';
+  const maxLeft = Math.max(0, tray.clientWidth - pieceW - 8);
+  const randLeft = Math.random() * maxLeft;
+  const randTop = Math.random() * Math.max(0, (parseFloat(tray.style.minHeight) || 130) - pieceH - 8);
+  piece.style.left = (8 + randLeft) + 'px';
+  piece.style.top = (8 + randTop) + 'px';
+  tray.appendChild(piece);
+}
+
+function checkWin() {
+  if (placedCount === totalPieces) {
+    setTimeout(() => {
+      launchConfetti();
+      playApplause();
+      showReveal();
+    }, 200);
+  }
+}
+
+function showReveal() {
+  const overlay = document.getElementById('reveal-overlay');
+  const img = document.getElementById('reveal-img');
+  img.src = IMG_SRC;
+  overlay.classList.add('show');
+}
+
+document.getElementById('closeRevealBtn').addEventListener('click', () => {
+  document.getElementById('reveal-overlay').classList.remove('show');
+});
+
+/* ============ applause (synthesized, offline) ============ */
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playSingleClap(ctx, startTime, volume) {
+  const bufferSize = ctx.sampleRate * 0.06;
+  const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) {
+    const decay = Math.pow(1 - i / bufferSize, 3);
+    data[i] = (Math.random() * 2 - 1) * decay;
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = buffer;
+  const bandpass = ctx.createBiquadFilter();
+  bandpass.type = 'bandpass';
+  bandpass.frequency.value = 1800 + Math.random() * 800;
+  bandpass.Q.value = 0.9;
+  const gainNode = ctx.createGain();
+  gainNode.gain.setValueAtTime(volume, startTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + 0.09);
+  noise.connect(bandpass);
+  bandpass.connect(gainNode);
+  gainNode.connect(ctx.destination);
+  noise.start(startTime);
+  noise.stop(startTime + 0.1);
+}
+function playApplause() {
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    const duration = 1.8;
+    const totalClaps = 55;
+    for (let i = 0; i < totalClaps; i++) {
+      const t = now + Math.random() * duration;
+      const volume = 0.35 + Math.random() * 0.35;
+      playSingleClap(ctx, t, volume);
+    }
+  } catch (e) { console.warn('Audio not available:', e); }
+}
+
+function launchConfetti() {
+  const emojis = ['🎉','✨','🌟','🎊','⭐','🧩'];
+  for (let i = 0; i < 45; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      c.style.left = Math.random() * window.innerWidth + 'px';
+      c.style.animationDuration = (2 + Math.random()*2) + 's';
+      c.style.fontSize = (18 + Math.random()*14) + 'px';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4000);
+    }, i * 60);
+  }
+}
+
+restartBtn.addEventListener('click', setupPuzzle);
+hintBtn.addEventListener('click', () => {
+  const panel = document.querySelector('.ref-panel');
+  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+});
+
+let resizeTimeout = null;
+let lastWidth = window.innerWidth;
+window.addEventListener('resize', () => {
+  if (draggingEl) return;
+  if (window.innerWidth === lastWidth) return;
+  lastWidth = window.innerWidth;
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    if (gameStep.style.display === 'flex' && IMG_SRC) setupPuzzle();
+  }, 250);
+});
+</script>
+</body>
+</html>
